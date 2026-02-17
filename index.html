@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SkyBroker Connect | Find Trusted Aircraft Brokers</title>
+  <meta name="description" content="Connect with experienced aircraft brokers. Whether you're buying or selling an aircraft, we match you with the right broker for your needs.">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --navy: #0b1d3a;
+      --blue: #1a56db;
+      --blue-dark: #1648b8;
+      --sky: #e8f0fe;
+      --gold: #d4a843;
+      --gold-dark: #b8912e;
+      --white: #ffffff;
+      --gray-50: #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-300: #d1d5db;
+      --gray-500: #6b7280;
+      --gray-700: #374151;
+      --gray-900: #111827;
+      --radius: 8px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, sans-serif;
+      color: var(--gray-900);
+      line-height: 1.6;
+    }
+
+    /* --- NAV --- */
+    nav {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      background: rgba(11, 29, 58, 0.95);
+      backdrop-filter: blur(8px);
+      z-index: 100;
+      padding: 0 24px;
+    }
+    .nav-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+    }
+    .logo {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--white);
+      text-decoration: none;
+      letter-spacing: -0.5px;
+    }
+    .logo span { color: var(--gold); }
+    .nav-links { display: flex; gap: 32px; list-style: none; }
+    .nav-links a {
+      color: rgba(255,255,255,0.8);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--white); }
+    .nav-cta {
+      background: var(--gold);
+      color: var(--navy) !important;
+      padding: 8px 20px;
+      border-radius: var(--radius);
+      font-weight: 600 !important;
+    }
+    .nav-cta:hover { background: var(--gold-dark); }
+    .hamburger {
+      display: none;
+      background: none;
+      border: none;
+      cursor: pointer;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .hamburger span {
+      display: block;
+      width: 24px;
+      height: 2px;
+      background: var(--white);
+      transition: 0.3s;
+    }
+
+    /* --- HERO --- */
+    .hero {
+      background: linear-gradient(165deg, var(--navy) 0%, #122c5c 100%);
+      padding: 140px 24px 100px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0; right: 0; bottom: 0; left: 0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Ccircle cx='30' cy='30' r='1.5'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+    .hero-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+      position: relative;
+    }
+    .hero-text h1 {
+      font-size: 3.2rem;
+      font-weight: 800;
+      color: var(--white);
+      line-height: 1.15;
+      margin-bottom: 20px;
+      letter-spacing: -1px;
+    }
+    .hero-text h1 span { color: var(--gold); }
+    .hero-text p {
+      font-size: 1.15rem;
+      color: rgba(255,255,255,0.7);
+      margin-bottom: 36px;
+      max-width: 500px;
+    }
+    .hero-btns { display: flex; gap: 16px; flex-wrap: wrap; }
+    .btn {
+      display: inline-block;
+      padding: 14px 32px;
+      border-radius: var(--radius);
+      font-size: 1rem;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary { background: var(--gold); color: var(--navy); }
+    .btn-primary:hover { background: var(--gold-dark); }
+    .btn-outline {
+      background: transparent;
+      color: var(--white);
+      border: 2px solid rgba(255,255,255,0.3);
+    }
+    .btn-outline:hover { border-color: var(--white); }
+    .btn-blue { background: var(--blue); color: var(--white); }
+    .btn-blue:hover { background: var(--blue-dark); }
+
+    .hero-form-card {
+      background: var(--white);
+      border-radius: 12px;
+      padding: 36px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    .hero-form-card h2 {
+      font-size: 1.3rem;
+      margin-bottom: 4px;
+      color: var(--navy);
+    }
+    .hero-form-card .subtitle {
+      font-size: 0.9rem;
+      color: var(--gray-500);
+      margin-bottom: 24px;
+    }
+
+    /* --- FORMS --- */
+    .form-group { margin-bottom: 16px; }
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--gray-700);
+    }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid var(--gray-300);
+      border-radius: var(--radius);
+      font-size: 0.95rem;
+      font-family: inherit;
+      transition: border-color 0.2s;
+      background: var(--white);
+    }
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(26,86,219,0.1);
+    }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .form-submit {
+      width: 100%;
+      padding: 14px;
+      background: var(--blue);
+      color: var(--white);
+      border: none;
+      border-radius: var(--radius);
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-top: 8px;
+    }
+    .form-submit:hover { background: var(--blue-dark); }
+    .form-note {
+      text-align: center;
+      font-size: 0.78rem;
+      color: var(--gray-500);
+      margin-top: 12px;
+    }
+
+    /* --- TABS --- */
+    .tab-bar {
+      display: flex;
+      gap: 0;
+      margin-bottom: 24px;
+      border-bottom: 2px solid var(--gray-100);
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 10px;
+      background: none;
+      border: none;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--gray-500);
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      transition: 0.2s;
+    }
+    .tab-btn.active {
+      color: var(--blue);
+      border-bottom-color: var(--blue);
+    }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* --- TRUST BAR --- */
+    .trust-bar {
+      background: var(--white);
+      border-top: 1px solid var(--gray-100);
+      padding: 40px 24px;
+    }
+    .trust-inner {
+      max-width: 1000px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: center;
+      gap: 48px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .trust-stat {
+      text-align: center;
+    }
+    .trust-stat .number {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--navy);
+    }
+    .trust-stat .label {
+      font-size: 0.85rem;
+      color: var(--gray-500);
+      margin-top: 2px;
+    }
+
+    /* --- SECTIONS --- */
+    section { padding: 80px 24px; }
+    .section-inner { max-width: 1200px; margin: 0 auto; }
+    .section-header {
+      text-align: center;
+      margin-bottom: 56px;
+    }
+    .section-header h2 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: var(--navy);
+      margin-bottom: 12px;
+      letter-spacing: -0.5px;
+    }
+    .section-header p {
+      font-size: 1.05rem;
+      color: var(--gray-500);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* --- HOW IT WORKS --- */
+    #how-it-works { background: var(--gray-50); }
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 40px;
+    }
+    .step {
+      text-align: center;
+      padding: 32px 24px;
+    }
+    .step-num {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--blue);
+      color: var(--white);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+    .step h3 {
+      font-size: 1.15rem;
+      margin-bottom: 10px;
+      color: var(--navy);
+    }
+    .step p {
+      font-size: 0.95rem;
+      color: var(--gray-500);
+      line-height: 1.6;
+    }
+
+    /* --- SERVICES --- */
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+    }
+    .service-card {
+      background: var(--white);
+      border: 1.5px solid var(--gray-100);
+      border-radius: 12px;
+      padding: 32px;
+      transition: box-shadow 0.2s, border-color 0.2s;
+    }
+    .service-card:hover {
+      box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+      border-color: var(--blue);
+    }
+    .service-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 10px;
+      background: var(--sky);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      margin-bottom: 16px;
+    }
+    .service-card h3 {
+      font-size: 1.1rem;
+      margin-bottom: 8px;
+      color: var(--navy);
+    }
+    .service-card p {
+      font-size: 0.92rem;
+      color: var(--gray-500);
+    }
+
+    /* --- TESTIMONIALS --- */
+    #testimonials { background: var(--gray-50); }
+    .testimonials-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+    .testimonial {
+      background: var(--white);
+      border-radius: 12px;
+      padding: 28px;
+      border: 1px solid var(--gray-100);
+    }
+    .stars {
+      color: var(--gold);
+      font-size: 1.1rem;
+      margin-bottom: 12px;
+      letter-spacing: 2px;
+    }
+    .testimonial blockquote {
+      font-size: 0.95rem;
+      color: var(--gray-700);
+      line-height: 1.65;
+      margin-bottom: 16px;
+      font-style: italic;
+    }
+    .testimonial-author {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--navy);
+    }
+    .testimonial-role {
+      font-size: 0.8rem;
+      color: var(--gray-500);
+    }
+
+    /* --- CTA --- */
+    .cta-section {
+      background: linear-gradient(165deg, var(--navy), #122c5c);
+      text-align: center;
+    }
+    .cta-section h2 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: var(--white);
+      margin-bottom: 16px;
+    }
+    .cta-section p {
+      font-size: 1.05rem;
+      color: rgba(255,255,255,0.7);
+      margin-bottom: 32px;
+      max-width: 550px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .cta-btns { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+
+    /* --- FOOTER --- */
+    footer {
+      background: #060f1f;
+      color: rgba(255,255,255,0.6);
+      padding: 60px 24px 32px;
+    }
+    .footer-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 48px;
+    }
+    .footer-brand p {
+      font-size: 0.9rem;
+      margin-top: 12px;
+      line-height: 1.6;
+    }
+    .footer-col h4 {
+      color: var(--white);
+      font-size: 0.9rem;
+      margin-bottom: 16px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .footer-col a {
+      display: block;
+      color: rgba(255,255,255,0.5);
+      text-decoration: none;
+      font-size: 0.88rem;
+      margin-bottom: 10px;
+      transition: color 0.2s;
+    }
+    .footer-col a:hover { color: var(--white); }
+    .footer-bottom {
+      max-width: 1200px;
+      margin: 40px auto 0;
+      padding-top: 24px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      font-size: 0.82rem;
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    /* --- MODAL --- */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal {
+      background: var(--white);
+      border-radius: 12px;
+      padding: 40px;
+      max-width: 520px;
+      width: 100%;
+      position: relative;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--gray-500);
+      line-height: 1;
+    }
+    .modal h2 { font-size: 1.4rem; margin-bottom: 4px; color: var(--navy); }
+    .modal .subtitle {
+      font-size: 0.9rem;
+      color: var(--gray-500);
+      margin-bottom: 24px;
+    }
+
+    /* --- SUCCESS STATE --- */
+    .success-message {
+      display: none;
+      text-align: center;
+      padding: 24px;
+    }
+    .success-message.active { display: block; }
+    .success-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: #d1fae5;
+      color: #059669;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      margin-bottom: 16px;
+    }
+    .success-message h3 {
+      font-size: 1.3rem;
+      color: var(--navy);
+      margin-bottom: 8px;
+    }
+    .success-message p {
+      color: var(--gray-500);
+      font-size: 0.95rem;
+    }
+
+    /* --- RESPONSIVE --- */
+    @media (max-width: 900px) {
+      .hero-inner { grid-template-columns: 1fr; }
+      .hero-text h1 { font-size: 2.4rem; }
+      .steps { grid-template-columns: 1fr; gap: 24px; }
+      .services-grid { grid-template-columns: 1fr; }
+      .testimonials-grid { grid-template-columns: 1fr; }
+      .footer-inner { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 600px) {
+      .nav-links { display: none; }
+      .nav-links.open {
+        display: flex;
+        flex-direction: column;
+        position: absolute;
+        top: 64px;
+        left: 0;
+        right: 0;
+        background: var(--navy);
+        padding: 24px;
+        gap: 16px;
+      }
+      .hamburger { display: flex; }
+      .hero { padding: 120px 24px 60px; }
+      .hero-text h1 { font-size: 2rem; }
+      .hero-btns { flex-direction: column; }
+      .form-row { grid-template-columns: 1fr; }
+      .footer-inner { grid-template-columns: 1fr; gap: 32px; }
+      .trust-inner { gap: 32px; }
+      .cta-section h2 { font-size: 1.7rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <div class="nav-inner">
+      <a href="#" class="logo">Sky<span>Broker</span> Connect</a>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="#how-it-works">How It Works</a></li>
+        <li><a href="#services">Services</a></li>
+        <li><a href="#testimonials">Testimonials</a></li>
+        <li><a href="#" class="nav-cta" onclick="openModal('seller')">List Your Aircraft</a></li>
+      </ul>
+      <button class="hamburger" onclick="toggleNav()" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="hero-text">
+        <h1>Buy or Sell Aircraft with a <span>Trusted Broker</span></h1>
+        <p>We connect aircraft owners and buyers with experienced, vetted brokers who handle every detail&mdash;from valuation to closing.</p>
+        <div class="hero-btns">
+          <a href="#" class="btn btn-primary" onclick="openModal('buyer'); return false;">Find a Broker</a>
+          <a href="#" class="btn btn-outline" onclick="openModal('seller'); return false;">Sell Your Aircraft</a>
+        </div>
+      </div>
+      <div class="hero-form-card">
+        <h2>Get Matched for Free</h2>
+        <p class="subtitle">Tell us what you need and we'll connect you with the right broker.</p>
+        <div class="tab-bar">
+          <button class="tab-btn active" onclick="switchTab('buyTab', this)">I Want to Buy</button>
+          <button class="tab-btn" onclick="switchTab('sellTab', this)">I Want to Sell</button>
+        </div>
+        <div id="buyTab" class="tab-content active">
+          <form id="heroBuyForm" onsubmit="handleSubmit(event, this)">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="buyFirst">First Name</label>
+                <input type="text" id="buyFirst" name="firstName" required>
+              </div>
+              <div class="form-group">
+                <label for="buyLast">Last Name</label>
+                <input type="text" id="buyLast" name="lastName" required>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="buyEmail">Email Address</label>
+              <input type="email" id="buyEmail" name="email" required>
+            </div>
+            <div class="form-group">
+              <label for="buyPhone">Phone Number</label>
+              <input type="tel" id="buyPhone" name="phone">
+            </div>
+            <div class="form-group">
+              <label for="buyType">Aircraft Type of Interest</label>
+              <select id="buyType" name="aircraftType" required>
+                <option value="">Select type...</option>
+                <option>Single-Engine Piston</option>
+                <option>Multi-Engine Piston</option>
+                <option>Turboprop</option>
+                <option>Light Jet</option>
+                <option>Midsize Jet</option>
+                <option>Heavy Jet</option>
+                <option>Helicopter</option>
+                <option>Other</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="buyBudget">Budget Range</label>
+              <select id="buyBudget" name="budget">
+                <option value="">Select range...</option>
+                <option>Under $250,000</option>
+                <option>$250,000 - $500,000</option>
+                <option>$500,000 - $1,000,000</option>
+                <option>$1,000,000 - $5,000,000</option>
+                <option>$5,000,000 - $20,000,000</option>
+                <option>$20,000,000+</option>
+              </select>
+            </div>
+            <button type="submit" class="form-submit">Get Matched with a Broker</button>
+            <p class="form-note">Free, no-obligation broker match. Your info stays private.</p>
+          </form>
+        </div>
+        <div id="sellTab" class="tab-content">
+          <form id="heroSellForm" onsubmit="handleSubmit(event, this)">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="sellFirst">First Name</label>
+                <input type="text" id="sellFirst" name="firstName" required>
+              </div>
+              <div class="form-group">
+                <label for="sellLast">Last Name</label>
+                <input type="text" id="sellLast" name="lastName" required>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="sellEmail">Email Address</label>
+              <input type="email" id="sellEmail" name="email" required>
+            </div>
+            <div class="form-group">
+              <label for="sellPhone">Phone Number</label>
+              <input type="tel" id="sellPhone" name="phone">
+            </div>
+            <div class="form-group">
+              <label for="sellAircraft">Aircraft Make & Model</label>
+              <input type="text" id="sellAircraft" name="aircraft" placeholder="e.g. Cessna Citation CJ3+" required>
+            </div>
+            <div class="form-group">
+              <label for="sellYear">Year</label>
+              <input type="number" id="sellYear" name="year" placeholder="e.g. 2018" min="1940" max="2026">
+            </div>
+            <button type="submit" class="form-submit">Get a Free Valuation</button>
+            <p class="form-note">No fees. No commitments. Just expert guidance.</p>
+          </form>
+        </div>
+        <div class="success-message" id="heroSuccess">
+          <div class="success-icon">&#10003;</div>
+          <h3>Request Submitted</h3>
+          <p>A broker specialist will contact you within 24 hours to discuss your needs.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TRUST BAR -->
+  <div class="trust-bar">
+    <div class="trust-inner">
+      <div class="trust-stat">
+        <div class="number">2,400+</div>
+        <div class="label">Clients Matched</div>
+      </div>
+      <div class="trust-stat">
+        <div class="number">180+</div>
+        <div class="label">Vetted Brokers</div>
+      </div>
+      <div class="trust-stat">
+        <div class="number">$3.2B</div>
+        <div class="label">Transaction Volume</div>
+      </div>
+      <div class="trust-stat">
+        <div class="number">98%</div>
+        <div class="label">Client Satisfaction</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HOW IT WORKS -->
+  <section id="how-it-works">
+    <div class="section-inner">
+      <div class="section-header">
+        <h2>How It Works</h2>
+        <p>Getting connected with the right aircraft broker is simple and takes just a few steps.</p>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <h3>Tell Us Your Needs</h3>
+          <p>Fill out a brief form with details about what you're looking for&mdash;whether buying, selling, or trading an aircraft.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <h3>We Match You</h3>
+          <p>Our team reviews your requirements and pairs you with a vetted broker who specializes in your aircraft category and region.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <h3>Close with Confidence</h3>
+          <p>Your broker handles negotiations, inspections, paperwork, and closing&mdash;so you can focus on flying.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SERVICES -->
+  <section id="services">
+    <div class="section-inner">
+      <div class="section-header">
+        <h2>What Our Brokers Handle</h2>
+        <p>From initial search to final closing, our broker network covers every stage of the aircraft transaction.</p>
+      </div>
+      <div class="services-grid">
+        <div class="service-card">
+          <div class="service-icon">&#9992;</div>
+          <h3>Aircraft Acquisitions</h3>
+          <p>Our brokers search the global market to find the right aircraft for your mission profile, budget, and preferences.</p>
+        </div>
+        <div class="service-card">
+          <div class="service-icon">&#36;</div>
+          <h3>Sales & Listing</h3>
+          <p>Get your aircraft in front of qualified buyers worldwide with professional marketing, pricing strategy, and negotiation support.</p>
+        </div>
+        <div class="service-card">
+          <div class="service-icon">&#128203;</div>
+          <h3>Pre-Buy Inspections</h3>
+          <p>Brokers coordinate thorough inspections, review maintenance records, and identify potential issues before you commit.</p>
+        </div>
+        <div class="service-card">
+          <div class="service-icon">&#9878;</div>
+          <h3>Market Valuations</h3>
+          <p>Get accurate, data-driven valuations based on current market conditions, aircraft history, and comparable sales.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TESTIMONIALS -->
+  <section id="testimonials">
+    <div class="section-inner">
+      <div class="section-header">
+        <h2>What Our Clients Say</h2>
+        <p>Thousands of aircraft buyers and sellers have found the right broker through our platform.</p>
+      </div>
+      <div class="testimonials-grid">
+        <div class="testimonial">
+          <div class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+          <blockquote>"I was looking for a pre-owned King Air and had no idea where to start. SkyBroker matched me with a broker who found exactly what I needed in three weeks."</blockquote>
+          <div class="testimonial-author">David R.</div>
+          <div class="testimonial-role">First-Time Buyer, Texas</div>
+        </div>
+        <div class="testimonial">
+          <div class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+          <blockquote>"Sold my Citation in 45 days at a price I was very happy with. The broker handled everything&mdash;I barely had to lift a finger."</blockquote>
+          <div class="testimonial-author">Margaret S.</div>
+          <div class="testimonial-role">Aircraft Owner, Florida</div>
+        </div>
+        <div class="testimonial">
+          <div class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+          <blockquote>"As a flight department manager, I've used SkyBroker for three fleet acquisitions now. The broker quality and speed of matching is unmatched."</blockquote>
+          <div class="testimonial-author">James T.</div>
+          <div class="testimonial-role">Fleet Manager, California</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section">
+    <div class="section-inner">
+      <h2>Ready to Find Your Broker?</h2>
+      <p>Whether you're buying your first aircraft or selling one you've flown for years, we'll connect you with the right expert.</p>
+      <div class="cta-btns">
+        <a href="#" class="btn btn-primary" onclick="openModal('buyer'); return false;">I Want to Buy</a>
+        <a href="#" class="btn btn-outline" onclick="openModal('seller'); return false;">I Want to Sell</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <a href="#" class="logo">Sky<span>Broker</span> Connect</a>
+        <p>The trusted platform connecting aircraft buyers and sellers with experienced, vetted brokers across North America and beyond.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Services</h4>
+        <a href="#services">Acquisitions</a>
+        <a href="#services">Sales & Listing</a>
+        <a href="#services">Valuations</a>
+        <a href="#services">Inspections</a>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <a href="#">About Us</a>
+        <a href="#">Our Brokers</a>
+        <a href="#">Blog</a>
+        <a href="#">Careers</a>
+      </div>
+      <div class="footer-col">
+        <h4>Support</h4>
+        <a href="#">Contact Us</a>
+        <a href="#">FAQ</a>
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Service</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>&copy; 2026 SkyBroker Connect. All rights reserved.</span>
+      <span>info@skybrokerconnect.com</span>
+    </div>
+  </footer>
+
+  <!-- MODAL -->
+  <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+    <div class="modal" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="document.getElementById('modalOverlay').classList.remove('active')">&times;</button>
+      <div id="modalFormContent">
+        <h2 id="modalTitle">Get Matched with a Broker</h2>
+        <p class="subtitle" id="modalSubtitle">Fill in your details and we'll connect you with a specialist.</p>
+        <form id="modalForm" onsubmit="handleSubmit(event, this)">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="modalFirst">First Name</label>
+              <input type="text" id="modalFirst" name="firstName" required>
+            </div>
+            <div class="form-group">
+              <label for="modalLast">Last Name</label>
+              <input type="text" id="modalLast" name="lastName" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="modalEmail">Email Address</label>
+            <input type="email" id="modalEmail" name="email" required>
+          </div>
+          <div class="form-group">
+            <label for="modalPhone">Phone Number</label>
+            <input type="tel" id="modalPhone" name="phone">
+          </div>
+          <div id="modalExtraFields"></div>
+          <button type="submit" class="form-submit" id="modalSubmitBtn">Submit Request</button>
+          <p class="form-note">Free, no-obligation. Your information stays private.</p>
+        </form>
+      </div>
+      <div class="success-message" id="modalSuccess">
+        <div class="success-icon">&#10003;</div>
+        <h3>You're All Set</h3>
+        <p>A broker specialist will reach out within 24 hours. Check your inbox for a confirmation email.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Tab switching
+    function switchTab(tabId, btn) {
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      btn.classList.add('active');
+    }
+
+    // Mobile nav
+    function toggleNav() {
+      document.getElementById('navLinks').classList.toggle('open');
+    }
+
+    // Modal
+    function openModal(type) {
+      const overlay = document.getElementById('modalOverlay');
+      const extra = document.getElementById('modalExtraFields');
+      const formContent = document.getElementById('modalFormContent');
+      const success = document.getElementById('modalSuccess');
+
+      formContent.style.display = 'block';
+      success.classList.remove('active');
+
+      if (type === 'buyer') {
+        document.getElementById('modalTitle').textContent = 'Find a Broker to Buy';
+        document.getElementById('modalSubtitle').textContent = 'Tell us what aircraft you are looking for.';
+        document.getElementById('modalSubmitBtn').textContent = 'Get Matched with a Broker';
+        extra.innerHTML = `
+          <div class="form-group">
+            <label for="mBuyType">Aircraft Type</label>
+            <select id="mBuyType" name="aircraftType" required>
+              <option value="">Select type...</option>
+              <option>Single-Engine Piston</option>
+              <option>Multi-Engine Piston</option>
+              <option>Turboprop</option>
+              <option>Light Jet</option>
+              <option>Midsize Jet</option>
+              <option>Heavy Jet</option>
+              <option>Helicopter</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="mBuyBudget">Budget Range</label>
+            <select id="mBuyBudget" name="budget">
+              <option value="">Select range...</option>
+              <option>Under $250,000</option>
+              <option>$250,000 - $500,000</option>
+              <option>$500,000 - $1,000,000</option>
+              <option>$1,000,000 - $5,000,000</option>
+              <option>$5,000,000 - $20,000,000</option>
+              <option>$20,000,000+</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="mBuyNotes">Additional Details</label>
+            <textarea id="mBuyNotes" name="notes" rows="3" placeholder="Preferred year range, total hours, avionics, etc."></textarea>
+          </div>`;
+      } else {
+        document.getElementById('modalTitle').textContent = 'List Your Aircraft for Sale';
+        document.getElementById('modalSubtitle').textContent = 'Tell us about the aircraft you want to sell.';
+        document.getElementById('modalSubmitBtn').textContent = 'Get a Free Valuation';
+        extra.innerHTML = `
+          <div class="form-group">
+            <label for="mSellAircraft">Aircraft Make & Model</label>
+            <input type="text" id="mSellAircraft" name="aircraft" placeholder="e.g. Gulfstream G280" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="mSellYear">Year</label>
+              <input type="number" id="mSellYear" name="year" placeholder="e.g. 2019" min="1940" max="2026">
+            </div>
+            <div class="form-group">
+              <label for="mSellHours">Total Hours</label>
+              <input type="number" id="mSellHours" name="hours" placeholder="e.g. 2500">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="mSellNotes">Additional Details</label>
+            <textarea id="mSellNotes" name="notes" rows="3" placeholder="Avionics, interior condition, maintenance status, asking price, etc."></textarea>
+          </div>`;
+      }
+      overlay.classList.add('active');
+    }
+
+    function closeModal(e) {
+      if (e.target === e.currentTarget) {
+        e.currentTarget.classList.remove('active');
+      }
+    }
+
+    // Form submission
+    function handleSubmit(e, form) {
+      e.preventDefault();
+      const data = new FormData(form);
+      const entries = Object.fromEntries(data.entries());
+      console.log('Lead submitted:', entries);
+
+      // Show success state
+      const parent = form.closest('.hero-form-card') || form.closest('.modal');
+      if (parent) {
+        const successEl = parent.querySelector('.success-message');
+        if (form.closest('.modal')) {
+          document.getElementById('modalFormContent').style.display = 'none';
+        }
+        form.style.display = 'none';
+        document.querySelectorAll('.tab-bar').forEach(t => {
+          if (parent.contains(t)) t.style.display = 'none';
+        });
+        successEl.classList.add('active');
+      }
+    }
+
+    // Close nav on link click (mobile)
+    document.querySelectorAll('.nav-links a').forEach(a => {
+      a.addEventListener('click', () => {
+        document.getElementById('navLinks').classList.remove('open');
+      });
+    });
+  </script>
+
+</body>
+</html>
