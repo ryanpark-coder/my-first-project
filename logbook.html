@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FlightLog Pro | Pilot Logbook</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --navy: #0b1d3a;
+      --navy-light: #132848;
+      --blue: #1a56db;
+      --blue-dark: #1648b8;
+      --sky: #e8f0fe;
+      --gold: #d4a843;
+      --gold-dark: #b8912e;
+      --white: #ffffff;
+      --gray-50: #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-300: #d1d5db;
+      --gray-400: #9ca3af;
+      --gray-500: #6b7280;
+      --gray-700: #374151;
+      --gray-900: #111827;
+      --green: #10b981;
+      --red: #ef4444;
+      --radius: 8px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.08);
+    }
+
+    html, body { min-height: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--gray-50); color: var(--gray-900); }
+
+    /* ── Navigation ── */
+    .nav {
+      background: var(--navy);
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      height: 60px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+    .nav-brand { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+    .nav-brand .icon { font-size: 22px; }
+    .nav-brand .name { font-size: 17px; font-weight: 700; color: var(--white); letter-spacing: -0.3px; }
+    .nav-brand .pro { color: var(--gold); font-size: 11px; font-weight: 600; margin-left: 2px; vertical-align: super; }
+    .nav-tabs { display: flex; gap: 2px; flex: 1; }
+    .tab-btn {
+      background: none; border: none; color: rgba(255,255,255,0.6);
+      padding: 8px 16px; border-radius: var(--radius); cursor: pointer;
+      font-size: 14px; font-weight: 500; transition: all 0.15s; white-space: nowrap;
+    }
+    .tab-btn:hover { background: rgba(255,255,255,0.1); color: var(--white); }
+    .tab-btn.active { background: var(--blue); color: var(--white); }
+
+    /* ── Layout ── */
+    .content { max-width: 1400px; margin: 0 auto; padding: 28px 24px; }
+    .panel { display: none; }
+    .panel.active { display: block; }
+    .page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; gap: 16px; flex-wrap: wrap; }
+    .page-title { font-size: 22px; font-weight: 700; color: var(--navy); }
+    .page-subtitle { font-size: 14px; color: var(--gray-500); margin-top: 3px; }
+    .page-actions { display: flex; gap: 8px; flex-shrink: 0; flex-wrap: wrap; }
+
+    /* ── Cards ── */
+    .card { background: var(--white); border-radius: var(--radius); border: 1px solid var(--gray-200); box-shadow: var(--shadow); }
+    .card-header { padding: 16px 20px; border-bottom: 1px solid var(--gray-200); display: flex; align-items: center; justify-content: space-between; }
+    .card-title { font-size: 14px; font-weight: 600; color: var(--gray-900); }
+    .card-body { padding: 20px; }
+
+    /* ── Stats ── */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(175px, 1fr)); gap: 14px; margin-bottom: 24px; }
+    .stat-card { background: var(--white); border-radius: var(--radius); border: 1px solid var(--gray-200); padding: 18px 20px; box-shadow: var(--shadow); }
+    .stat-card.primary { background: var(--navy); border-color: var(--navy); }
+    .stat-label { font-size: 11px; font-weight: 600; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 8px; }
+    .stat-card.primary .stat-label { color: rgba(255,255,255,0.55); }
+    .stat-value { font-size: 30px; font-weight: 700; color: var(--navy); line-height: 1; }
+    .stat-card.primary .stat-value { color: var(--gold); }
+    .stat-sub { font-size: 12px; color: var(--gray-400); margin-top: 5px; }
+    .stat-card.primary .stat-sub { color: rgba(255,255,255,0.4); }
+
+    /* ── Two-col grid ── */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 24px; }
+
+    /* ── Progress bar ── */
+    .progress-bar { height: 5px; background: var(--gray-200); border-radius: 3px; overflow: hidden; margin-top: 5px; }
+    .progress-fill { height: 100%; background: var(--gold); border-radius: 3px; }
+
+    /* ── Table ── */
+    .table-wrap { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--gray-200); background: var(--white); box-shadow: var(--shadow); }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; white-space: nowrap; }
+    th { background: var(--gray-50); padding: 10px 12px; text-align: left; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gray-500); border-bottom: 1px solid var(--gray-200); }
+    th.r, td.r { text-align: right; font-variant-numeric: tabular-nums; }
+    td { padding: 9px 12px; border-bottom: 1px solid var(--gray-100); color: var(--gray-700); vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: var(--gray-50); }
+    .zero { color: var(--gray-300); }
+    tfoot tr td { font-weight: 700; background: var(--navy); color: var(--white); border-top: 2px solid var(--navy-light); border-bottom: none; }
+    tfoot tr td.r { color: var(--gold); }
+
+    /* ── Buttons ── */
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: var(--radius); border: none; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.15s; text-decoration: none; white-space: nowrap; }
+    .btn-primary { background: var(--blue); color: var(--white); }
+    .btn-primary:hover { background: var(--blue-dark); }
+    .btn-secondary { background: var(--white); color: var(--gray-700); border: 1px solid var(--gray-300); }
+    .btn-secondary:hover { background: var(--gray-50); }
+    .btn-gold { background: var(--gold); color: var(--navy); font-weight: 600; }
+    .btn-gold:hover { background: var(--gold-dark); }
+    .btn-danger { background: var(--red); color: var(--white); padding: 4px 10px; font-size: 12px; }
+    .btn-danger:hover { opacity: 0.85; }
+    .btn-sm { padding: 6px 12px; font-size: 13px; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* ── Forms ── */
+    .form-section { border: 1px solid var(--gray-200); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; }
+    .form-section-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.6px; color: var(--gray-400); margin-bottom: 16px; }
+    .form-row { display: grid; gap: 14px; margin-bottom: 14px; }
+    .form-row:last-child { margin-bottom: 0; }
+    .cols-2 { grid-template-columns: 1fr 1fr; }
+    .cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+    .cols-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+    .cols-5 { grid-template-columns: repeat(5, 1fr); }
+    .form-group { display: flex; flex-direction: column; gap: 5px; }
+    label { font-size: 11px; font-weight: 600; color: var(--gray-600, #4b5563); text-transform: uppercase; letter-spacing: 0.3px; }
+    input[type="text"], input[type="date"], input[type="number"], input[type="password"], textarea, select {
+      padding: 8px 12px; border: 1px solid var(--gray-300); border-radius: var(--radius);
+      font-size: 14px; color: var(--gray-900); background: var(--white); width: 100%;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    input:focus, textarea:focus, select:focus {
+      outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(26,86,219,0.1);
+    }
+    textarea { resize: vertical; min-height: 64px; font-family: inherit; }
+
+    /* ── Mode tabs ── */
+    .mode-tabs { display: flex; border-bottom: 2px solid var(--gray-200); margin-bottom: 24px; }
+    .mode-tab { padding: 10px 20px; font-size: 14px; font-weight: 500; color: var(--gray-500); border: none; background: none; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.15s; }
+    .mode-tab:hover { color: var(--gray-700); }
+    .mode-tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+    .mode-panel { display: none; }
+    .mode-panel.active { display: block; }
+
+    /* ── Upload zone ── */
+    .upload-zone { border: 2px dashed var(--gray-300); border-radius: var(--radius); padding: 44px 20px; text-align: center; cursor: pointer; transition: all 0.2s; background: var(--gray-50); }
+    .upload-zone:hover, .upload-zone.dragover { border-color: var(--blue); background: var(--sky); }
+    .upload-icon { font-size: 52px; margin-bottom: 12px; }
+    .upload-zone h3 { font-size: 16px; color: var(--gray-700); margin-bottom: 6px; }
+    .upload-zone p { font-size: 14px; color: var(--gray-400); }
+    .upload-preview { margin-top: 16px; }
+    .upload-preview img { max-width: 100%; max-height: 320px; border-radius: var(--radius); border: 1px solid var(--gray-200); }
+
+    /* ── Alerts ── */
+    .alert { padding: 12px 16px; border-radius: var(--radius); font-size: 14px; margin-bottom: 16px; line-height: 1.5; }
+    .alert-info { background: var(--sky); border: 1px solid #c7d7f7; color: #1e3a8a; }
+    .alert-success { background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; }
+    .alert-warning { background: #fffbeb; border: 1px solid #fde68a; color: #78350f; }
+    .alert-error { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
+
+    /* ── Spinner ── */
+    .spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.6s linear infinite; display: inline-block; vertical-align: middle; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Extracted entry ── */
+    .extracted-entry { border: 1px solid var(--gray-200); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; background: var(--gray-50); }
+    .extracted-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; flex-wrap: wrap; gap: 8px; }
+    .badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 100px; font-size: 11px; font-weight: 600; }
+    .badge-blue { background: var(--sky); color: var(--blue); }
+    details summary { font-size: 13px; color: var(--blue); cursor: pointer; margin-top: 12px; user-select: none; }
+    details summary:hover { text-decoration: underline; }
+
+    /* ── Modal ── */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: var(--white); border-radius: 12px; width: 100%; max-width: 680px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+    .modal-header { padding: 20px 24px; border-bottom: 1px solid var(--gray-200); display: flex; align-items: center; justify-content: space-between; }
+    .modal-title { font-size: 17px; font-weight: 600; }
+    .modal-close { background: none; border: none; font-size: 26px; cursor: pointer; color: var(--gray-400); line-height: 1; padding: 0 4px; }
+    .modal-close:hover { color: var(--gray-700); }
+    .modal-body { padding: 24px; }
+    .detail-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-bottom: 20px; }
+    .detail-item label { display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--gray-400); margin-bottom: 4px; }
+    .detail-value { font-size: 16px; font-weight: 600; color: var(--gray-900); }
+
+    /* ── Empty state ── */
+    .empty-state { text-align: center; padding: 64px 20px; color: var(--gray-400); }
+    .empty-icon { font-size: 64px; margin-bottom: 16px; }
+    .empty-state h3 { font-size: 18px; color: var(--gray-500); margin-bottom: 8px; }
+    .empty-state p { font-size: 14px; }
+
+    /* ── Search bar ── */
+    .toolbar { display: flex; gap: 10px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+    .toolbar input { max-width: 300px; }
+
+    /* ── Toast ── */
+    #toast { position: fixed; bottom: 24px; right: 24px; background: var(--navy); color: white; padding: 12px 20px; border-radius: 8px; font-size: 14px; font-weight: 500; z-index: 9999; box-shadow: 0 4px 16px rgba(0,0,0,0.3); opacity: 0; transition: opacity 0.2s; pointer-events: none; }
+    #toast.show { opacity: 1; }
+
+    /* ── API key row ── */
+    .key-row { display: flex; gap: 8px; }
+    .key-row input { flex: 1; }
+
+    /* ── Recent flights ── */
+    .recent-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--gray-100); }
+    .recent-item:last-child { border-bottom: none; }
+    .recent-route { font-size: 14px; font-weight: 600; color: var(--gray-900); }
+    .recent-meta { font-size: 12px; color: var(--gray-400); margin-top: 2px; }
+    .recent-time { font-size: 17px; font-weight: 700; color: var(--navy); }
+
+    /* ── Responsive ── */
+    @media (max-width: 900px) { .two-col { grid-template-columns: 1fr; } }
+    @media (max-width: 768px) {
+      .cols-5 { grid-template-columns: repeat(3, 1fr); }
+      .cols-4 { grid-template-columns: 1fr 1fr; }
+      .cols-3 { grid-template-columns: 1fr 1fr; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .detail-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 480px) {
+      .cols-5, .cols-4, .cols-3 { grid-template-columns: 1fr; }
+      .cols-2 { grid-template-columns: 1fr; }
+      .content { padding: 16px; }
+      .nav { padding: 0 16px; gap: 12px; }
+      .tab-btn { padding: 6px 10px; font-size: 13px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-brand">
+    <span class="icon">✈</span>
+    <span class="name">FlightLog<span class="pro">PRO</span></span>
+  </div>
+  <div class="nav-tabs">
+    <button class="tab-btn active" onclick="showTab('dashboard')">Dashboard</button>
+    <button class="tab-btn" onclick="showTab('logbook')">My Logbook</button>
+    <button class="tab-btn" onclick="showTab('add')">+ Add Flight</button>
+    <button class="tab-btn" onclick="showTab('settings')">Settings</button>
+  </div>
+</nav>
+
+<div class="content">
+
+  <!-- ═══ DASHBOARD ═══ -->
+  <div id="panel-dashboard" class="panel active">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Flight Dashboard</h1>
+        <p class="page-subtitle">Your total logged flight time at a glance</p>
+      </div>
+      <div class="page-actions">
+        <button class="btn btn-secondary btn-sm" onclick="exportCSV()">⬇ Export CSV</button>
+        <button class="btn btn-primary btn-sm" onclick="showTab('add')">+ Add Flight</button>
+      </div>
+    </div>
+    <div id="stats-grid" class="stats-grid"></div>
+    <div class="two-col">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Hours by Aircraft Type</span></div>
+        <div class="card-body" id="aircraft-breakdown"><p style="color:var(--gray-400);font-size:14px;">No flights logged yet.</p></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Recent Flights</span></div>
+        <div class="card-body" id="recent-flights"><p style="color:var(--gray-400);font-size:14px;">No flights logged yet.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ LOGBOOK ═══ -->
+  <div id="panel-logbook" class="panel">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">My Logbook</h1>
+        <p class="page-subtitle" id="flight-count-label">0 flights logged</p>
+      </div>
+      <div class="page-actions">
+        <button class="btn btn-secondary btn-sm" onclick="exportCSV()">⬇ Export CSV</button>
+        <button class="btn btn-primary btn-sm" onclick="showTab('add')">+ Add Flight</button>
+      </div>
+    </div>
+    <div class="toolbar">
+      <input type="text" id="search-input" placeholder="Search aircraft, airport, date, remarks…" oninput="renderLogbook()">
+      <button class="btn btn-secondary btn-sm" onclick="document.getElementById('search-input').value='';renderLogbook()">Clear</button>
+    </div>
+    <div id="logbook-table-wrap" class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Aircraft</th>
+            <th>Tail #</th>
+            <th>From</th>
+            <th>To</th>
+            <th class="r">Total</th>
+            <th class="r">PIC</th>
+            <th class="r">SIC</th>
+            <th class="r">Solo</th>
+            <th class="r">Dual</th>
+            <th class="r">XC</th>
+            <th class="r">Night</th>
+            <th class="r">Act IMC</th>
+            <th class="r">Sim IMC</th>
+            <th class="r">Day Ldg</th>
+            <th class="r">Ngt Ldg</th>
+            <th>Remarks</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="logbook-tbody"></tbody>
+        <tfoot id="logbook-tfoot"></tfoot>
+      </table>
+    </div>
+    <div id="logbook-empty" class="empty-state" style="display:none;">
+      <div class="empty-icon">📋</div>
+      <h3>No flights logged yet</h3>
+      <p>Add your first flight to get started</p>
+    </div>
+  </div>
+
+  <!-- ═══ ADD FLIGHT ═══ -->
+  <div id="panel-add" class="panel">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Add Flight</h1>
+        <p class="page-subtitle">Scan your paper logbook or enter a flight manually</p>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body">
+        <div class="mode-tabs">
+          <button class="mode-tab active" onclick="showMode('scan')">📷 Scan Logbook Page</button>
+          <button class="mode-tab" onclick="showMode('manual')">✏️ Manual Entry</button>
+        </div>
+
+        <!-- SCAN MODE -->
+        <div id="mode-scan" class="mode-panel active">
+          <div class="alert alert-info">
+            Upload a photo of your paper logbook page. AI will extract all visible flight entries automatically — you can review and correct anything before saving.
+          </div>
+          <div id="upload-zone" class="upload-zone"
+               onclick="document.getElementById('file-input').click()"
+               ondragover="onDragOver(event)" ondrop="onDrop(event)" ondragleave="this.classList.remove('dragover')">
+            <div class="upload-icon">📸</div>
+            <h3>Drop your logbook photo here</h3>
+            <p>or click to browse — JPG, PNG, HEIC supported</p>
+            <input type="file" id="file-input" accept="image/*" style="display:none" onchange="onFileSelect(event)">
+          </div>
+          <div id="upload-preview" class="upload-preview" style="display:none;">
+            <img id="preview-img" src="" alt="Logbook page preview">
+          </div>
+
+          <div id="api-key-section" style="margin-top:18px;display:none;">
+            <div class="form-group">
+              <label>Anthropic API Key (required for AI extraction)</label>
+              <div class="key-row">
+                <input type="password" id="scan-api-key" placeholder="sk-ant-api03-…">
+                <button class="btn btn-secondary btn-sm" onclick="toggleVis('scan-api-key', this)">Show</button>
+              </div>
+              <small style="color:var(--gray-400);font-size:12px;margin-top:4px;display:block;">Stored locally in your browser only — never transmitted except to Anthropic's API.</small>
+            </div>
+            <button id="extract-btn" class="btn btn-gold" style="margin-top:14px;" onclick="extractFlights()">
+              ✨ Extract Flights from Image
+            </button>
+          </div>
+
+          <div id="extracted-results" style="margin-top:28px;display:none;">
+            <h3 style="font-size:15px;font-weight:600;margin-bottom:16px;" id="extracted-title"></h3>
+            <div id="extracted-list"></div>
+            <div id="extract-error"></div>
+            <div id="extracted-actions" style="display:flex;gap:12px;margin-top:16px;display:none;">
+              <button class="btn btn-primary" onclick="saveExtracted()">Save All Flights</button>
+              <button class="btn btn-secondary" onclick="clearScan()">Clear &amp; Rescan</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- MANUAL MODE -->
+        <div id="mode-manual" class="mode-panel">
+          <form id="manual-form" onsubmit="saveManual(event)">
+            <div class="form-section">
+              <div class="form-section-title">Flight Information</div>
+              <div class="form-row cols-3">
+                <div class="form-group">
+                  <label>Date *</label>
+                  <input type="date" id="f-date" required>
+                </div>
+                <div class="form-group">
+                  <label>Aircraft Make &amp; Model</label>
+                  <input type="text" id="f-aircraft" placeholder="Cessna 172SP">
+                </div>
+                <div class="form-group">
+                  <label>Tail Number</label>
+                  <input type="text" id="f-tail" placeholder="N12345" style="text-transform:uppercase;">
+                </div>
+              </div>
+              <div class="form-row cols-3">
+                <div class="form-group">
+                  <label>From (Departure)</label>
+                  <input type="text" id="f-from" placeholder="KORD" style="text-transform:uppercase;">
+                </div>
+                <div class="form-group">
+                  <label>To (Destination)</label>
+                  <input type="text" id="f-to" placeholder="KLAX" style="text-transform:uppercase;">
+                </div>
+                <div class="form-group">
+                  <label>Route</label>
+                  <input type="text" id="f-route" placeholder="Intermediate stops" style="text-transform:uppercase;">
+                </div>
+              </div>
+            </div>
+
+            <div class="form-section">
+              <div class="form-section-title">Flight Time — decimal hours (e.g. 1.5 = 1 hr 30 min)</div>
+              <div class="form-row cols-5">
+                <div class="form-group">
+                  <label>Total Time *</label>
+                  <input type="number" id="f-total" step="0.1" min="0" placeholder="1.5" required>
+                </div>
+                <div class="form-group">
+                  <label>PIC</label>
+                  <input type="number" id="f-pic" step="0.1" min="0" placeholder="0.0">
+                </div>
+                <div class="form-group">
+                  <label>SIC</label>
+                  <input type="number" id="f-sic" step="0.1" min="0" placeholder="0.0">
+                </div>
+                <div class="form-group">
+                  <label>Solo</label>
+                  <input type="number" id="f-solo" step="0.1" min="0" placeholder="0.0">
+                </div>
+                <div class="form-group">
+                  <label>Dual Received</label>
+                  <input type="number" id="f-dual" step="0.1" min="0" placeholder="0.0">
+                </div>
+              </div>
+              <div class="form-row cols-4">
+                <div class="form-group">
+                  <label>Cross-Country</label>
+                  <input type="number" id="f-xc" step="0.1" min="0" placeholder="0.0">
+                </div>
+                <div class="form-group">
+                  <label>Night</label>
+                  <input type="number" id="f-night" step="0.1" min="0" placeholder="0.0">
+                </div>
+                <div class="form-group">
+                  <label>Actual IMC</label>
+                  <input type="number" id="f-act-imc" step="0.1" min="0" placeholder="0.0">
+                </div>
+                <div class="form-group">
+                  <label>Simulated IMC</label>
+                  <input type="number" id="f-sim-imc" step="0.1" min="0" placeholder="0.0">
+                </div>
+              </div>
+            </div>
+
+            <div class="form-section">
+              <div class="form-section-title">Landings</div>
+              <div class="form-row cols-4">
+                <div class="form-group">
+                  <label>Day Landings</label>
+                  <input type="number" id="f-day-ldg" step="1" min="0" placeholder="0">
+                </div>
+                <div class="form-group">
+                  <label>Night Landings</label>
+                  <input type="number" id="f-night-ldg" step="1" min="0" placeholder="0">
+                </div>
+              </div>
+            </div>
+
+            <div class="form-section">
+              <div class="form-section-title">Remarks / Conditions</div>
+              <textarea id="f-remarks" placeholder="Flight conditions, maneuvers practiced, endorsements, etc."></textarea>
+            </div>
+
+            <div style="display:flex;gap:12px;">
+              <button type="submit" class="btn btn-primary">Save Flight</button>
+              <button type="button" class="btn btn-secondary" onclick="document.getElementById('manual-form').reset();setTodayDate()">Clear Form</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SETTINGS ═══ -->
+  <div id="panel-settings" class="panel">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Settings</h1>
+        <p class="page-subtitle">API key and data management</p>
+      </div>
+    </div>
+    <div style="max-width:580px;display:flex;flex-direction:column;gap:20px;">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Anthropic API Key</span></div>
+        <div class="card-body">
+          <p style="font-size:14px;color:var(--gray-500);margin-bottom:16px;line-height:1.6;">
+            Required for the AI logbook scanning feature. Get your key at <strong>console.anthropic.com</strong>.
+            It is stored only in your browser's <code>localStorage</code> and is never sent anywhere except directly to Anthropic's API.
+          </p>
+          <div class="form-group">
+            <label>API Key</label>
+            <div class="key-row">
+              <input type="password" id="settings-api-key" placeholder="sk-ant-api03-…">
+              <button class="btn btn-secondary btn-sm" onclick="toggleVis('settings-api-key', this)">Show</button>
+            </div>
+          </div>
+          <button class="btn btn-primary" style="margin-top:14px;" onclick="saveApiKey()">Save Key</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Data Management</span></div>
+        <div class="card-body">
+          <p style="font-size:14px;color:var(--gray-500);margin-bottom:16px;line-height:1.6;">
+            All logbook data is stored locally in your browser. Export regularly to keep a backup.
+          </p>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;">
+            <button class="btn btn-secondary" onclick="exportCSV()">⬇ Export as CSV</button>
+            <button class="btn btn-danger" onclick="confirmClearAll()">Delete All Data</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- .content -->
+
+<!-- Flight Detail Modal -->
+<div class="modal-overlay" id="flight-modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 class="modal-title" id="modal-title">Flight Details</h2>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ─────────────────────────────────────────────────────────────
+// Storage helpers
+// ─────────────────────────────────────────────────────────────
+const STORE = 'flightlog_v1';
+const KEY_STORE = 'flightlog_apikey';
+
+const getFlights = () => { try { return JSON.parse(localStorage.getItem(STORE) || '[]'); } catch { return []; } };
+const saveFlights = f => localStorage.setItem(STORE, JSON.stringify(f));
+const getApiKey = () => localStorage.getItem(KEY_STORE) || '';
+const storeApiKey = k => localStorage.setItem(KEY_STORE, k);
+
+function addFlights(entries) {
+  const all = getFlights();
+  entries.forEach(f => { f.id = Date.now() + Math.random(); all.push(f); });
+  all.sort((a, b) => new Date(a.date) - new Date(b.date));
+  saveFlights(all);
+}
+
+function removeFlight(id) {
+  saveFlights(getFlights().filter(f => f.id !== id));
+}
+
+// ─────────────────────────────────────────────────────────────
+// Math helpers
+// ─────────────────────────────────────────────────────────────
+const n = v => parseFloat(v) || 0;
+const ni = v => parseInt(v) || 0;
+const fix = (v, d=1) => n(v).toFixed(d);
+
+function calcTotals(flights) {
+  return flights.reduce((a, f) => ({
+    total: a.total + n(f.total_time),
+    pic:   a.pic   + n(f.pic),
+    sic:   a.sic   + n(f.sic),
+    solo:  a.solo  + n(f.solo),
+    dual:  a.dual  + n(f.dual_received),
+    xc:    a.xc    + n(f.cross_country),
+    night: a.night + n(f.night),
+    act:   a.act   + n(f.actual_instrument),
+    sim:   a.sim   + n(f.simulated_instrument),
+    dldg:  a.dldg  + ni(f.day_landings),
+    nldg:  a.nldg  + ni(f.night_landings),
+  }), { total:0, pic:0, sic:0, solo:0, dual:0, xc:0, night:0, act:0, sim:0, dldg:0, nldg:0 });
+}
+
+function fmtCell(v, isInt=false) {
+  const val = isInt ? ni(v) : n(v);
+  if (!val) return '<span class="zero">—</span>';
+  return isInt ? val : fix(v);
+}
+
+function formatDate(s) {
+  if (!s) return '';
+  try {
+    return new Date(s + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  } catch { return s; }
+}
+
+// ─────────────────────────────────────────────────────────────
+// Navigation
+// ─────────────────────────────────────────────────────────────
+const TAB_IDS = ['dashboard', 'logbook', 'add', 'settings'];
+
+function showTab(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  document.querySelectorAll('.tab-btn')[TAB_IDS.indexOf(id)].classList.add('active');
+  if (id === 'dashboard') renderDashboard();
+  if (id === 'logbook')   renderLogbook();
+  if (id === 'settings')  document.getElementById('settings-api-key').value = getApiKey();
+}
+
+function showMode(id) {
+  document.querySelectorAll('.mode-tab').forEach((t, i) => t.classList.toggle('active', (id === 'scan') === (i === 0)));
+  document.querySelectorAll('.mode-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('mode-' + id).classList.add('active');
+}
+
+// ─────────────────────────────────────────────────────────────
+// Dashboard
+// ─────────────────────────────────────────────────────────────
+function renderDashboard() {
+  const flights = getFlights();
+  const t = calcTotals(flights);
+
+  document.getElementById('stats-grid').innerHTML = [
+    { label: 'Total Flight Time', value: fix(t.total), sub: `${flights.length} flight${flights.length !== 1 ? 's' : ''}`, primary: true },
+    { label: 'PIC Time',          value: fix(t.pic),   sub: 'Pilot in Command' },
+    { label: 'Cross-Country',     value: fix(t.xc),    sub: 'XC hours' },
+    { label: 'Night Time',        value: fix(t.night), sub: 'Night hours' },
+    { label: 'Actual IMC',        value: fix(t.act),   sub: 'Instrument conditions' },
+    { label: 'Simulated IMC',     value: fix(t.sim),   sub: 'Hood / simulator' },
+    { label: 'Solo Time',         value: fix(t.solo),  sub: 'Solo hours' },
+    { label: 'Dual Received',     value: fix(t.dual),  sub: 'With instructor' },
+    { label: 'SIC Time',          value: fix(t.sic),   sub: 'Second in Command' },
+    { label: 'Day Landings',      value: t.dldg,       sub: 'Full stop + touch-and-go' },
+    { label: 'Night Landings',    value: t.nldg,       sub: 'Night landings' },
+  ].map(s => `
+    <div class="stat-card${s.primary ? ' primary' : ''}">
+      <div class="stat-label">${s.label}</div>
+      <div class="stat-value">${s.value}</div>
+      <div class="stat-sub">${s.sub}</div>
+    </div>
+  `).join('');
+
+  // Aircraft breakdown
+  const byAc = {};
+  flights.forEach(f => {
+    const k = f.aircraft_make_model || 'Unknown';
+    if (!byAc[k]) byAc[k] = { time: 0, count: 0 };
+    byAc[k].time += n(f.total_time);
+    byAc[k].count++;
+  });
+  const maxT = Math.max(...Object.values(byAc).map(v => v.time), 1);
+  const acEl = document.getElementById('aircraft-breakdown');
+  if (!Object.keys(byAc).length) {
+    acEl.innerHTML = '<p style="color:var(--gray-400);font-size:14px;">No flights logged yet.</p>';
+  } else {
+    acEl.innerHTML = Object.entries(byAc).sort((a, b) => b[1].time - a[1].time).map(([ac, d]) => `
+      <div style="margin-bottom:14px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+          <span style="font-size:14px;font-weight:500;">${ac}</span>
+          <span style="font-size:13px;color:var(--gray-500);">${fix(d.time)} hrs · ${d.count} flight${d.count !== 1 ? 's' : ''}</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${(d.time / maxT * 100).toFixed(1)}%"></div></div>
+      </div>
+    `).join('');
+  }
+
+  // Recent flights
+  const recEl = document.getElementById('recent-flights');
+  const recent = [...flights].reverse().slice(0, 6);
+  if (!recent.length) {
+    recEl.innerHTML = '<p style="color:var(--gray-400);font-size:14px;">No flights logged yet.</p>';
+  } else {
+    recEl.innerHTML = recent.map(f => `
+      <div class="recent-item">
+        <div>
+          <div class="recent-route">${f.from_airport || '?'} → ${f.to_airport || '?'}</div>
+          <div class="recent-meta">${f.aircraft_make_model || 'Unknown aircraft'} · ${formatDate(f.date)}</div>
+        </div>
+        <div class="recent-time">${fix(f.total_time)}h</div>
+      </div>
+    `).join('');
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// Logbook table
+// ─────────────────────────────────────────────────────────────
+function renderLogbook() {
+  const q = (document.getElementById('search-input')?.value || '').toLowerCase();
+  const all = getFlights();
+  let flights = q ? all.filter(f =>
+    (f.aircraft_make_model || '').toLowerCase().includes(q) ||
+    (f.aircraft_tail || '').toLowerCase().includes(q) ||
+    (f.from_airport || '').toLowerCase().includes(q) ||
+    (f.to_airport || '').toLowerCase().includes(q) ||
+    (f.date || '').includes(q) ||
+    (f.remarks || '').toLowerCase().includes(q)
+  ) : all;
+
+  const label = document.getElementById('flight-count-label');
+  if (label) label.textContent = `${all.length} flight${all.length !== 1 ? 's' : ''} logged`;
+
+  const tbody = document.getElementById('logbook-tbody');
+  const tfoot = document.getElementById('logbook-tfoot');
+  const empty = document.getElementById('logbook-empty');
+  const wrap  = document.getElementById('logbook-table-wrap');
+
+  if (!flights.length) {
+    tbody.innerHTML = '';
+    tfoot.innerHTML = '';
+    empty.style.display = 'block';
+    wrap.style.display  = 'none';
+    return;
+  }
+
+  empty.style.display = 'none';
+  wrap.style.display  = 'block';
+
+  tbody.innerHTML = [...flights].reverse().map(f => `
+    <tr onclick="viewFlight(${f.id})" style="cursor:pointer;">
+      <td>${formatDate(f.date)}</td>
+      <td>${f.aircraft_make_model || '<span class="zero">—</span>'}</td>
+      <td>${f.aircraft_tail || '<span class="zero">—</span>'}</td>
+      <td><strong>${f.from_airport || '?'}</strong></td>
+      <td><strong>${f.to_airport || '?'}</strong></td>
+      <td class="r"><strong>${fix(f.total_time)}</strong></td>
+      <td class="r">${fmtCell(f.pic)}</td>
+      <td class="r">${fmtCell(f.sic)}</td>
+      <td class="r">${fmtCell(f.solo)}</td>
+      <td class="r">${fmtCell(f.dual_received)}</td>
+      <td class="r">${fmtCell(f.cross_country)}</td>
+      <td class="r">${fmtCell(f.night)}</td>
+      <td class="r">${fmtCell(f.actual_instrument)}</td>
+      <td class="r">${fmtCell(f.simulated_instrument)}</td>
+      <td class="r">${fmtCell(f.day_landings, true)}</td>
+      <td class="r">${fmtCell(f.night_landings, true)}</td>
+      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;color:var(--gray-400);">${f.remarks || ''}</td>
+      <td onclick="event.stopPropagation()">
+        <button class="btn btn-danger" onclick="delFlight(${f.id})">Delete</button>
+      </td>
+    </tr>
+  `).join('');
+
+  const t = calcTotals(flights);
+  tfoot.innerHTML = `
+    <tr>
+      <td colspan="5">TOTALS (${flights.length} flight${flights.length !== 1 ? 's' : ''})</td>
+      <td class="r">${fix(t.total)}</td>
+      <td class="r">${fix(t.pic)}</td>
+      <td class="r">${fix(t.sic)}</td>
+      <td class="r">${fix(t.solo)}</td>
+      <td class="r">${fix(t.dual)}</td>
+      <td class="r">${fix(t.xc)}</td>
+      <td class="r">${fix(t.night)}</td>
+      <td class="r">${fix(t.act)}</td>
+      <td class="r">${fix(t.sim)}</td>
+      <td class="r">${t.dldg}</td>
+      <td class="r">${t.nldg}</td>
+      <td colspan="2"></td>
+    </tr>
+  `;
+}
+
+// ─────────────────────────────────────────────────────────────
+// Flight detail modal
+// ─────────────────────────────────────────────────────────────
+function viewFlight(id) {
+  const f = getFlights().find(fl => fl.id === id);
+  if (!f) return;
+
+  document.getElementById('modal-title').textContent =
+    `${f.from_airport || '?'} → ${f.to_airport || '?'}  ·  ${formatDate(f.date)}`;
+
+  document.getElementById('modal-body').innerHTML = `
+    <div class="detail-grid" style="margin-bottom:20px;">
+      <div class="detail-item"><label>Date</label><div class="detail-value">${formatDate(f.date)}</div></div>
+      <div class="detail-item"><label>Aircraft</label><div class="detail-value">${f.aircraft_make_model || '—'}</div></div>
+      <div class="detail-item"><label>Tail Number</label><div class="detail-value">${f.aircraft_tail || '—'}</div></div>
+      <div class="detail-item"><label>From</label><div class="detail-value">${f.from_airport || '—'}</div></div>
+      <div class="detail-item"><label>To</label><div class="detail-value">${f.to_airport || '—'}</div></div>
+      <div class="detail-item"><label>Route</label><div class="detail-value">${f.route || '—'}</div></div>
+    </div>
+    <hr style="border:none;border-top:1px solid var(--gray-200);margin-bottom:20px;">
+    <div class="detail-grid" style="margin-bottom:20px;">
+      <div class="detail-item"><label>Total Time</label><div class="detail-value" style="color:var(--navy);font-size:20px;">${fix(f.total_time)} hrs</div></div>
+      <div class="detail-item"><label>PIC</label><div class="detail-value">${fix(f.pic)} hrs</div></div>
+      <div class="detail-item"><label>SIC</label><div class="detail-value">${fix(f.sic)} hrs</div></div>
+      <div class="detail-item"><label>Solo</label><div class="detail-value">${fix(f.solo)} hrs</div></div>
+      <div class="detail-item"><label>Dual Received</label><div class="detail-value">${fix(f.dual_received)} hrs</div></div>
+      <div class="detail-item"><label>Cross-Country</label><div class="detail-value">${fix(f.cross_country)} hrs</div></div>
+      <div class="detail-item"><label>Night</label><div class="detail-value">${fix(f.night)} hrs</div></div>
+      <div class="detail-item"><label>Actual IMC</label><div class="detail-value">${fix(f.actual_instrument)} hrs</div></div>
+      <div class="detail-item"><label>Simulated IMC</label><div class="detail-value">${fix(f.simulated_instrument)} hrs</div></div>
+      <div class="detail-item"><label>Day Landings</label><div class="detail-value">${ni(f.day_landings)}</div></div>
+      <div class="detail-item"><label>Night Landings</label><div class="detail-value">${ni(f.night_landings)}</div></div>
+    </div>
+    ${f.remarks ? `
+    <div style="background:var(--gray-50);border-radius:var(--radius);padding:14px 16px;font-size:14px;color:var(--gray-700);line-height:1.6;">
+      <strong style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:var(--gray-400);">Remarks</strong><br>${f.remarks}
+    </div>` : ''}
+  `;
+  document.getElementById('flight-modal').classList.add('open');
+}
+
+function closeModal() { document.getElementById('flight-modal').classList.remove('open'); }
+
+function delFlight(id) {
+  if (!confirm('Delete this flight entry?')) return;
+  removeFlight(id);
+  renderLogbook();
+  renderDashboard();
+  toast('Flight deleted.');
+}
+
+// ─────────────────────────────────────────────────────────────
+// Manual entry
+// ─────────────────────────────────────────────────────────────
+function setTodayDate() {
+  const el = document.getElementById('f-date');
+  if (el) el.value = new Date().toISOString().slice(0, 10);
+}
+
+function saveManual(e) {
+  e.preventDefault();
+  const g = id => document.getElementById(id).value;
+  const flight = {
+    date:                 g('f-date'),
+    aircraft_make_model:  g('f-aircraft').trim(),
+    aircraft_tail:        g('f-tail').trim().toUpperCase(),
+    from_airport:         g('f-from').trim().toUpperCase(),
+    to_airport:           g('f-to').trim().toUpperCase(),
+    route:                g('f-route').trim().toUpperCase(),
+    total_time:           parseFloat(g('f-total'))   || 0,
+    pic:                  parseFloat(g('f-pic'))      || 0,
+    sic:                  parseFloat(g('f-sic'))      || 0,
+    solo:                 parseFloat(g('f-solo'))     || 0,
+    dual_received:        parseFloat(g('f-dual'))     || 0,
+    cross_country:        parseFloat(g('f-xc'))       || 0,
+    night:                parseFloat(g('f-night'))    || 0,
+    actual_instrument:    parseFloat(g('f-act-imc'))  || 0,
+    simulated_instrument: parseFloat(g('f-sim-imc'))  || 0,
+    day_landings:         parseInt(g('f-day-ldg'))    || 0,
+    night_landings:       parseInt(g('f-night-ldg'))  || 0,
+    remarks:              g('f-remarks').trim(),
+  };
+  addFlights([flight]);
+  document.getElementById('manual-form').reset();
+  setTodayDate();
+  toast('Flight saved!');
+  showTab('logbook');
+}
+
+// ─────────────────────────────────────────────────────────────
+// Scan / OCR
+// ─────────────────────────────────────────────────────────────
+let imgBase64 = null;
+let imgMime   = 'image/jpeg';
+let extracted = [];
+
+function onDragOver(e) { e.preventDefault(); document.getElementById('upload-zone').classList.add('dragover'); }
+function onDrop(e) {
+  e.preventDefault();
+  document.getElementById('upload-zone').classList.remove('dragover');
+  const f = e.dataTransfer.files[0];
+  if (f) loadImage(f);
+}
+function onFileSelect(e) { const f = e.target.files[0]; if (f) loadImage(f); }
+
+function loadImage(file) {
+  imgMime = file.type || 'image/jpeg';
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const url = ev.target.result;
+    imgBase64 = url.split(',')[1];
+    document.getElementById('preview-img').src = url;
+    document.getElementById('upload-preview').style.display = 'block';
+    document.getElementById('api-key-section').style.display = 'block';
+    document.getElementById('extracted-results').style.display = 'none';
+    const saved = getApiKey();
+    if (saved) document.getElementById('scan-api-key').value = saved;
+  };
+  reader.readAsDataURL(file);
+}
+
+function toggleVis(inputId, btn) {
+  const el = document.getElementById(inputId);
+  const hidden = el.type === 'password';
+  el.type = hidden ? 'text' : 'password';
+  btn.textContent = hidden ? 'Hide' : 'Show';
+}
+
+async function extractFlights() {
+  const apiKey = document.getElementById('scan-api-key').value.trim();
+  if (!apiKey)     { alert('Please enter your Anthropic API key.'); return; }
+  if (!imgBase64)  { alert('Please upload a logbook photo first.'); return; }
+  storeApiKey(apiKey);
+
+  const btn = document.getElementById('extract-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Extracting…';
+
+  const prompt = `You are reading a pilot's aviation logbook page. Extract every flight entry visible in this image.
+
+Return ONLY a valid JSON array — no markdown, no explanation, just the array. Each element is one flight:
+{
+  "date": "YYYY-MM-DD",
+  "aircraft_make_model": "e.g. Cessna 172SP",
+  "aircraft_tail": "N-number e.g. N12345",
+  "from_airport": "ICAO or FAA identifier e.g. KORD",
+  "to_airport": "ICAO or FAA identifier e.g. KLAX",
+  "route": "intermediate stops or empty string",
+  "total_time": 0.0,
+  "pic": 0.0,
+  "sic": 0.0,
+  "solo": 0.0,
+  "dual_received": 0.0,
+  "cross_country": 0.0,
+  "night": 0.0,
+  "actual_instrument": 0.0,
+  "simulated_instrument": 0.0,
+  "day_landings": 0,
+  "night_landings": 0,
+  "remarks": ""
+}
+
+Rules:
+- All time values are decimal hours. Convert HH:MM to decimal if needed (e.g. 1:30 → 1.5).
+- Convert dates to YYYY-MM-DD. If only month/day is visible, infer the year from context.
+- Use 0 or "" for blank/empty fields.
+- If no flights are visible, return [].`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model: 'claude-opus-4-7',
+        max_tokens: 4096,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'image', source: { type: 'base64', media_type: imgMime, data: imgBase64 } },
+            { type: 'text', text: prompt },
+          ]
+        }]
+      })
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error?.message || `API error ${res.status}`);
+    }
+
+    const data = await res.json();
+    const text = data.content[0].text.trim().replace(/^```json\n?/, '').replace(/\n?```$/, '');
+    extracted = JSON.parse(text);
+
+    if (!Array.isArray(extracted) || !extracted.length) {
+      showExtractError('No flights detected in the image. Make sure the logbook rows are clearly visible and try again.');
+    } else {
+      renderExtracted();
+    }
+  } catch (err) {
+    showExtractError('Error: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '✨ Extract Flights from Image';
+  }
+}
+
+function showExtractError(msg) {
+  const res = document.getElementById('extracted-results');
+  res.style.display = 'block';
+  document.getElementById('extracted-title').textContent = '';
+  document.getElementById('extracted-list').innerHTML = '';
+  document.getElementById('extract-error').innerHTML = `<div class="alert alert-error">${msg}</div>`;
+  document.getElementById('extracted-actions').style.display = 'none';
+}
+
+function renderExtracted() {
+  document.getElementById('extracted-results').style.display = 'block';
+  document.getElementById('extract-error').innerHTML = '';
+  document.getElementById('extracted-title').textContent =
+    `Found ${extracted.length} flight${extracted.length !== 1 ? 's' : ''} — review and correct, then save`;
+  document.getElementById('extracted-actions').style.display = 'flex';
+
+  document.getElementById('extracted-list').innerHTML = extracted.map((f, i) => `
+    <div class="extracted-entry">
+      <div class="extracted-header">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <span class="badge badge-blue">Flight ${i + 1}</span>
+          <strong>${f.from_airport || '?'} → ${f.to_airport || '?'}</strong>
+          <span style="color:var(--gray-400);font-size:13px;">${f.aircraft_make_model || ''} ${f.aircraft_tail || ''}</span>
+        </div>
+        <span style="font-size:15px;font-weight:700;color:var(--navy);">${fix(f.total_time)} hrs</span>
+      </div>
+      <div class="form-row cols-4">
+        <div class="form-group"><label>Date</label>
+          <input type="date" value="${f.date || ''}" onchange="extracted[${i}].date=this.value"></div>
+        <div class="form-group"><label>Aircraft</label>
+          <input type="text" value="${f.aircraft_make_model || ''}" onchange="extracted[${i}].aircraft_make_model=this.value"></div>
+        <div class="form-group"><label>Tail #</label>
+          <input type="text" value="${f.aircraft_tail || ''}" onchange="extracted[${i}].aircraft_tail=this.value"></div>
+        <div class="form-group"><label>Total Time</label>
+          <input type="number" step="0.1" value="${fix(f.total_time)}" onchange="extracted[${i}].total_time=parseFloat(this.value)||0"></div>
+      </div>
+      <div class="form-row cols-4" style="margin-top:0;">
+        <div class="form-group"><label>From</label>
+          <input type="text" value="${f.from_airport || ''}" onchange="extracted[${i}].from_airport=this.value.toUpperCase()"></div>
+        <div class="form-group"><label>To</label>
+          <input type="text" value="${f.to_airport || ''}" onchange="extracted[${i}].to_airport=this.value.toUpperCase()"></div>
+        <div class="form-group"><label>PIC</label>
+          <input type="number" step="0.1" value="${fix(f.pic)}" onchange="extracted[${i}].pic=parseFloat(this.value)||0"></div>
+        <div class="form-group"><label>Cross-Country</label>
+          <input type="number" step="0.1" value="${fix(f.cross_country)}" onchange="extracted[${i}].cross_country=parseFloat(this.value)||0"></div>
+      </div>
+      <details>
+        <summary>Show all time fields…</summary>
+        <div class="form-row cols-5" style="margin-top:12px;">
+          <div class="form-group"><label>SIC</label><input type="number" step="0.1" value="${fix(f.sic)}" onchange="extracted[${i}].sic=parseFloat(this.value)||0"></div>
+          <div class="form-group"><label>Solo</label><input type="number" step="0.1" value="${fix(f.solo)}" onchange="extracted[${i}].solo=parseFloat(this.value)||0"></div>
+          <div class="form-group"><label>Dual Rcv'd</label><input type="number" step="0.1" value="${fix(f.dual_received)}" onchange="extracted[${i}].dual_received=parseFloat(this.value)||0"></div>
+          <div class="form-group"><label>Night</label><input type="number" step="0.1" value="${fix(f.night)}" onchange="extracted[${i}].night=parseFloat(this.value)||0"></div>
+          <div class="form-group"><label>Act IMC</label><input type="number" step="0.1" value="${fix(f.actual_instrument)}" onchange="extracted[${i}].actual_instrument=parseFloat(this.value)||0"></div>
+        </div>
+        <div class="form-row cols-4">
+          <div class="form-group"><label>Sim IMC</label><input type="number" step="0.1" value="${fix(f.simulated_instrument)}" onchange="extracted[${i}].simulated_instrument=parseFloat(this.value)||0"></div>
+          <div class="form-group"><label>Day Ldg</label><input type="number" step="1" value="${ni(f.day_landings)}" onchange="extracted[${i}].day_landings=parseInt(this.value)||0"></div>
+          <div class="form-group"><label>Night Ldg</label><input type="number" step="1" value="${ni(f.night_landings)}" onchange="extracted[${i}].night_landings=parseInt(this.value)||0"></div>
+          <div class="form-group"><label>Remarks</label><input type="text" value="${f.remarks || ''}" onchange="extracted[${i}].remarks=this.value"></div>
+        </div>
+      </details>
+    </div>
+  `).join('');
+}
+
+function saveExtracted() {
+  if (!extracted.length) return;
+  addFlights(extracted);
+  toast(`${extracted.length} flight${extracted.length !== 1 ? 's' : ''} saved!`);
+  clearScan();
+  showTab('logbook');
+}
+
+function clearScan() {
+  imgBase64 = null; extracted = [];
+  document.getElementById('upload-preview').style.display = 'none';
+  document.getElementById('api-key-section').style.display = 'none';
+  document.getElementById('extracted-results').style.display = 'none';
+  document.getElementById('file-input').value = '';
+}
+
+// ─────────────────────────────────────────────────────────────
+// Settings
+// ─────────────────────────────────────────────────────────────
+function saveApiKey() {
+  storeApiKey(document.getElementById('settings-api-key').value.trim());
+  toast('API key saved!');
+}
+
+function confirmClearAll() {
+  if (!confirm('Permanently delete ALL flight data? This cannot be undone.')) return;
+  localStorage.removeItem(STORE);
+  renderDashboard();
+  renderLogbook();
+  toast('All data cleared.');
+}
+
+// ─────────────────────────────────────────────────────────────
+// CSV export
+// ─────────────────────────────────────────────────────────────
+function exportCSV() {
+  const flights = getFlights();
+  if (!flights.length) { alert('No flights to export.'); return; }
+
+  const headers = ['Date','Aircraft','Tail#','From','To','Route','Total','PIC','SIC','Solo','Dual Rcvd','Cross-Country','Night','Actual IMC','Simulated IMC','Day Landings','Night Landings','Remarks'];
+  const q = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+
+  const rows = flights.map(f => [
+    f.date, f.aircraft_make_model, f.aircraft_tail, f.from_airport, f.to_airport, f.route,
+    fix(f.total_time), fix(f.pic), fix(f.sic), fix(f.solo), fix(f.dual_received),
+    fix(f.cross_country), fix(f.night), fix(f.actual_instrument), fix(f.simulated_instrument),
+    ni(f.day_landings), ni(f.night_landings), f.remarks || ''
+  ].map(q).join(','));
+
+  const t = calcTotals(flights);
+  const totRow = ['TOTALS','','','','','',
+    fix(t.total), fix(t.pic), fix(t.sic), fix(t.solo), fix(t.dual),
+    fix(t.xc), fix(t.night), fix(t.act), fix(t.sim), t.dldg, t.nldg, ''
+  ].map(q).join(',');
+
+  const csv = [headers.map(q).join(','), ...rows, totRow].join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+  a.download = `flightlog_${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+}
+
+// ─────────────────────────────────────────────────────────────
+// Toast
+// ─────────────────────────────────────────────────────────────
+let toastTimer;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+// ─────────────────────────────────────────────────────────────
+// Init
+// ─────────────────────────────────────────────────────────────
+setTodayDate();
+renderDashboard();
+</script>
+</body>
+</html>
